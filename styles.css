@@ -15,22 +15,35 @@ Secondary Colors:
 Fonts:
 - Proxima Nova
 - Avenir
-
+- Avenir Next
 */
 
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    font-family: 'Proxima Nova', Arial, sans-serif !important;
 }
 
 body {
-    display: flex;
-    justify-content: center;
-    align-items: center;
     min-height: 100vh;
-    background-color: #f0f0f0;
-    font-family: Arial, sans-serif;
+    background: #FFF7E1;
+    font-family: 'Proxima Nova', Arial, sans-serif !important;
+    color: #131313;
+    position: relative;
+    /* Remove background image from body itself */
+}
+body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    z-index: -1;
+    background: url('cwp.png') no-repeat center center fixed;
+    background-size: cover;
+    filter: blur(0px);
+    opacity: 0.85;
+    pointer-events: none;
+    display: block;
 }
 
 .game-wrapper {
@@ -38,91 +51,154 @@ body {
     flex-direction: column;
     align-items: center;
     gap: 20px;
-}
-
-.score-panel {
-    display: flex;
-    justify-content: space-between;  /* Space between score and button */
-    align-items: center;
-    width: 800px;
-    padding: 10px;
-    background-color: #fff;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.timer {
-    flex: 0 1 auto;
-    font-size: 24px;
-    font-weight: bold;
-}
-
-#game-container {
-    width: 800px;
-    height: 600px;
-    background-color: #e6f7ff;
-    border: 2px solid #333;
-    border-radius: 8px;
     position: relative;
-    overflow: hidden;
+    z-index: 1;
+    margin-top: 40px;
 }
 
-
-#start-btn {
-    padding: 8px 16px;
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 16px;
-}
-
-#start-btn:hover {
-    background-color: #45a049;
-}
-
-.score {
-    flex: 0 1 auto;  /* Don't grow, can shrink, auto basis */
-    font-size: 24px;
-    font-weight: bold;
-}
-
-.water-drop {
-    position: absolute;
-    width: 60px;  /* increased from 40px */
-    height: 60px; /* increased from 40px */
-    background-color: #0099ff;
-    border-radius: 50%;
-    animation: dropFall linear forwards;
-    transform-origin: center;
-    cursor: pointer;
-    padding: 15px;  /* Add padding for larger click area */
-    margin: -15px;  /* Offset padding to maintain visual size */
-    transition: transform 0.1s ease;  /* Smooth hover effect */
-}
-
-.water-drop:hover {
-    transform: scale(1.1);  /* Slight grow effect on hover */
-}
-
-.bad-drop {
-    background-color: #ff4444;
+#cw-logo {
+    width: 180px;
+    display: block;
+    margin: 0 auto 10px auto;
+    max-width: 60vw;
+    filter: drop-shadow(0 2px 8px rgba(46,157,247,0.10));
 }
 
 .game-title {
     color: #131313;
     font-size: 48px;
     margin-top: 0;
-    margin-bottom: 5px;  /* reduced from 20px */
+    margin-bottom: 5px;
     text-align: center;
+    font-family: Avenir Next, Avenir, Proxima Nova, Arial, sans-serif;
+    font-weight: 800;
+    letter-spacing: -1px;
 }
 
 .game-tagline {
-    color: #666;
-    font-size: 18px;
+    color: #00080f;
+    font-size: 20px;
     margin-bottom: 20px;
     text-align: center;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+}
+
+.score-panel {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 400px;
+    padding: 8px 12px;
+    background-color: #FFF7E1; /* cream */
+    border: 2px solid #000306;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0, 6, 11, 0.08);
+    margin-bottom: 10px;
+    font-size: 1rem;
+}
+
+.score {
+    font-size: 24px;
+    font-weight: bold;
+    color: #000305;
+    letter-spacing: 1px;
+}
+
+.timer {
+    font-size: 24px;
+    font-weight: bold;
+    color: #FFC907;
+    letter-spacing: 1px;
+}
+
+#start-btn {
+    padding: 10px 28px;
+    background-color: #FFC907;
+    color: #131313;
+    font-weight: 800;
+    border: none;
+    border-radius: 24px;
+    cursor: pointer;
+    font-size: 20px;
+    transition: background 0.2s, box-shadow 0.2s;
+    box-shadow: 0 2px 8px rgba(46,157,247,0.08);
+    letter-spacing: 1px;
+    outline: none;
+}
+
+#start-btn:disabled {
+    background-color: #e0e0e0;
+    color: #888;
+    cursor: not-allowed;
+}
+
+#start-btn:hover:not(:disabled) {
+    background-color: #FFD84D;
+    box-shadow: 0 4px 16px rgba(255,201,7,0.18);
+}
+
+#game-container {
+    width: 400px;
+    height: 600px;
+    background: url('CPT.png') no-repeat center center fixed;
+    border: 3px solid #000306;
+    border-radius: 16px;
+    position: relative;
+    overflow: hidden; 
+    margin-bottom: 24px;
+    box-shadow: 0 4px 24px rgba(46,157,247,0.10);
+}
+
+.water-drop {
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    background-color: #2E9DF7;
+    border-radius: 50%;
+    animation: dropFall linear forwards;
+    transform-origin: center;
+    cursor: pointer;
+    transition: transform 0.1s ease;
+    border: 4px solid #fff;
+    box-shadow: 0 2px 8px rgba(46,157,247,0.18);
+}
+
+.water-drop:hover {
+    transform: scale(1.12);
+    box-shadow: 0 4px 16px rgba(46,157,247,0.18);
+}
+
+.water-can {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    animation: dropFall linear forwards;
+    z-index: 2;
+    /* For SVG scaling */
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(255,201,7,0.18);
+    transition: transform 0.1s;
+    width: 25px !important;
+    height: 32px !important;
+}
+.water-can:hover {
+    transform: scale(1.12) rotate(-3deg);
+    box-shadow: 0 4px 16px rgba(255,201,7,0.18);
+}
+
+#cup {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 45px;
+    height: 35px;
+    z-index: 10;
+    transition: left 0.1s;
+    pointer-events: none;
 }
 
 @keyframes dropFall {
@@ -134,12 +210,136 @@ body {
     }
 }
 
+/* Red flash for wrong catch */
+#game-container.flash-red {
+    animation: flashRedBg 0.4s;
+}
+@keyframes flashRedBg {
+    0% { background: #F5402C; }
+    80% { background: #F5402C; }
+    100% { background: #FFF7E1; }
+}
+
+/* End message styling */
+#end-message {
+    font-family: 'Avenir Next', 'Avenir', 'Proxima Nova', Arial, sans-serif;
+    background: #FFF7E1; /* cream */
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(46,157,247,0.18);
+    font-size: 0.9rem; /* smaller message */
+    font-weight: bold;
+    text-align: center;
+    z-index: 10;
+    color: #2E9DF7;
+    max-width: 90vw;
+    word-break: break-word;
+    padding: 12px 8px; /* smaller padding */
+    border: 3px solid #FFC907;
+    animation: endMsgPop 0.7s cubic-bezier(.68,-0.55,.27,1.55);
+    opacity: 0.95;
+    transition: box-shadow 0.4s, transform 0.4s;
+}
+
+#end-message:hover {
+    box-shadow: 0 12px 40px 0 rgba(255,201,7,0.25);
+    transform: scale(1.04) rotate(-2deg);
+}
+
+@keyframes endMsgPop {
+    0% {
+        transform: scale(0.7) rotate(-8deg);
+        opacity: 0;
+    }
+    60% {
+        transform: scale(1.1) rotate(2deg);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1) rotate(0deg);
+        opacity: 0.95;
+    }
+}
+
+@media (max-width: 600px) {
+    #end-message {
+        font-size: 0.7rem;
+        padding: 7px 3px;
+    }
+}
+
+/* New styles for droplets and effects */
+.droplet {
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    pointer-events: none;
+    z-index: 2;
+    animation: dropFall linear forwards;
+}
+
+.droplet-frozen { filter: blur(1px) brightness(1.2); }
+.droplet-acid { filter: brightness(1.1) drop-shadow(0 0 6px #F5402C); }
+.droplet-rainbow { filter: drop-shadow(0 0 8px #FFC907); }
+
+.splash-effect {
+    animation: splashScale 0.5s cubic-bezier(.68,-0.55,.27,1.55);
+}
+@keyframes splashScale {
+    0% { transform: scale(1); opacity: 1; }
+    60% { transform: scale(1.5); opacity: 0.7; }
+    100% { transform: scale(0.8); opacity: 0; }
+}
+
+.combo-effect {
+    animation: comboPop 0.8s cubic-bezier(.68,-0.55,.27,1.55);
+    pointer-events: none;
+}
+@keyframes comboPop {
+    0% { transform: scale(0.7); opacity: 0; }
+    60% { transform: scale(1.2); opacity: 1; }
+    100% { transform: scale(1); opacity: 0; }
+}
+
+#cup.magnet {
+    box-shadow: 0 0 20px 5px #FFC907;
+    border-radius: 50%;
+    transition: box-shadow 0.3s;
+}
+
 @media (max-width: 850px) {
     .game-wrapper, .score-panel, #game-container {
-        width: 95vw;
+        width: 98vw;
+        min-width: unset;
     }
-    
     #game-container {
-        height: 70vh;
+        height: 60vw;
+        min-height: 300px;
+        max-height: 70vh;
+    }
+}
+
+@media (max-width: 600px) {
+    #cw-logo {
+        width: 120px;
+    }
+    .game-title {
+        font-size: 2rem;
+    }
+    .score-panel, #game-container {
+        width: 95vw;
+        min-width: unset;
+    }
+    #game-container {
+        height: 40vw;
+        min-height: 120px;
+        max-height: 40vh;
+    }
+    #end-message {
+        font-size: 1.2rem;
+        padding: 20px 10px;
+    }
+    #cup {
+        width: 30px;
+        height: 22px;
     }
 }
