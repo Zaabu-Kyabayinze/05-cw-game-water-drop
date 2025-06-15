@@ -42,8 +42,8 @@ body::before {
 }
 
 #cw-logo {
-    max-width: 120px;
-    width: 100px;
+    max-width: 220px;
+    width: 180px;
     height: auto;
     display: block;
     margin: 0 auto 10px auto;
@@ -409,9 +409,11 @@ html, body {
 
 /* Footer responsiveness */
 footer .container {
-    flex-direction: column !important;
-    gap: 8px;
+    flex-direction: row !important;
+    gap: 12px;
     text-align: center;
+    justify-content: center;
+    align-items: center;
 }
 
 /* --- Media Queries for Smaller Screens --- */
@@ -469,6 +471,13 @@ footer .container {
         font-size: 0.95rem;
         padding: 10px 2px;
     }
+}
+
+@media (max-width: 500px) {
+  footer .container {
+    flex-direction: column !important;
+    gap: 8px;
+  }
 }
 
 @media (max-width: 400px) {
