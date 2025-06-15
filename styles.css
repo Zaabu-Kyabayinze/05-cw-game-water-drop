@@ -42,8 +42,8 @@ body::before {
 }
 
 #cw-logo {
-    max-width: 60vw;
-    width: 180px;
+    max-width: 120px;
+    width: 100px;
     height: auto;
     display: block;
     margin: 0 auto 10px auto;
@@ -327,8 +327,8 @@ html, body {
 
 /* Logo responsiveness */
 #cw-logo {
-    max-width: 60vw;
-    width: 180px;
+    max-width: 120px;
+    width: 100px;
     height: auto;
     display: block;
     margin: 0 auto 10px auto;
@@ -423,8 +423,8 @@ footer .container {
     }
     #game-container {
         aspect-ratio: 2/3;
-        min-height: 180px;
-        max-height: 60vh;
+        min-height: 150px;    /* reduced from 180px */
+        max-height: 45vh;     /* reduced from 60vh */
     }
 }
 
@@ -442,11 +442,11 @@ footer .container {
         padding: 4px 4px;
     }
     #game-container {
-        min-width: 120px;
+        min-width: 90px;      /* reduced from 120px */
         width: 98vw;
         aspect-ratio: 2/3;
-        min-height: 100px;
-        max-height: 40vh;
+        min-height: 70px;     /* reduced from 100px */
+        max-height: 30vh;     /* reduced from 40vh */
     }
     .water-drop, .water-can {
         width: 12vw;
@@ -479,8 +479,8 @@ footer .container {
         font-size: 0.85rem;
     }
     #game-container {
-        min-width: 80px;
-        min-height: 60px;
+        min-width: 60px;      /* reduced from 80px */
+        min-height: 40px;     /* reduced from 60px */
     }
 }
 
