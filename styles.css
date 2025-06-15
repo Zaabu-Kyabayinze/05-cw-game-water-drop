@@ -1,22 +1,5 @@
-/* Charity: water Brand Colors & Fonts
-
-Primary Colors:
-- Yellow:     #FFC907
-- Blue:       #2E9DF7
-
-Secondary Colors:
-- Light Blue: #8BD1CB
-- Green:      #4FCB53
-- Orange:     #FF902A
-- Red:        #F5402C
-- Dark Green: #159A48
-- Pink:       #F16061
-
-Fonts:
-- Proxima Nova
-- Avenir
-- Avenir Next
-*/
+/* Google Fonts */
+@import url('https://fonts.googleapis.com/css?family=Quicksand:700|Nunito:400,700&display=swap');
 
 * {
     margin: 0;
@@ -154,19 +137,22 @@ body::before {
     position: absolute;
     width: 30px;
     height: 30px;
-    background-color: #2E9DF7;
-    border-radius: 50%;
-    animation: dropFall linear forwards;
+    animation: none;
     transform-origin: center;
     cursor: pointer;
-    transition: transform 0.1s ease;
-    border: 4px solid #fff;
+    transition: top linear, transform 0.1s ease;
+    border: none;
     box-shadow: 0 2px 8px rgba(46,157,247,0.18);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    z-index: 20;
 }
-
-.water-drop:hover {
-    transform: scale(1.12);
-    box-shadow: 0 4px 16px rgba(46,157,247,0.18);
+.water-drop svg {
+    width: 100%;
+    height: 100%;
+    display: block;
 }
 
 .water-can {
@@ -260,52 +246,44 @@ body::before {
     }
 }
 
-@media (max-width: 600px) {
-    #end-message {
-        font-size: 0.7rem;
-        padding: 7px 3px;
-    }
+/* Modal Styles */
+.modal.show {
+    display: block !important;
+    background: rgba(0,0,0,0.5);
+}
+.modal {
+    display: none;
+}
+.modal-content {
+    border-radius: 16px;
+    background: #fff7e1;
+    box-shadow: 0 8px 32px rgba(46,157,247,0.18);
+    font-size: 1.1rem;
+    font-family: 'Nunito', 'Quicksand', Arial, sans-serif !important;
 }
 
-/* New styles for droplets and effects */
-.droplet {
-    position: absolute;
-    width: 30px;
-    height: 30px;
-    pointer-events: none;
-    z-index: 2;
-    animation: dropFall linear forwards;
+/* Water drop types */
+.water-drop.clean svg path {
+    fill: #2E9DF7;
+    stroke: #fff;
+}
+.water-drop.polluted svg path {
+    fill: #8d6748;
+    stroke: #fff;
 }
 
-.droplet-frozen { filter: blur(1px) brightness(1.2); }
-.droplet-acid { filter: brightness(1.1) drop-shadow(0 0 6px #F5402C); }
-.droplet-rainbow { filter: drop-shadow(0 0 8px #FFC907); }
-
-.splash-effect {
-    animation: splashScale 0.5s cubic-bezier(.68,-0.55,.27,1.55);
+/* Drop bounce animation */
+@keyframes dropBounce {
+    0% { transform: scale(1); }
+    30% { transform: scale(1.2); }
+    60% { transform: scale(0.95); }
+    100% { transform: scale(1); }
 }
-@keyframes splashScale {
-    0% { transform: scale(1); opacity: 1; }
-    60% { transform: scale(1.5); opacity: 0.7; }
-    100% { transform: scale(0.8); opacity: 0; }
+.water-drop.bounce {
+    animation: dropBounce 0.4s;
 }
 
-.combo-effect {
-    animation: comboPop 0.8s cubic-bezier(.68,-0.55,.27,1.55);
-    pointer-events: none;
-}
-@keyframes comboPop {
-    0% { transform: scale(0.7); opacity: 0; }
-    60% { transform: scale(1.2); opacity: 1; }
-    100% { transform: scale(1); opacity: 0; }
-}
-
-#cup.magnet {
-    box-shadow: 0 0 20px 5px #FFC907;
-    border-radius: 50%;
-    transition: box-shadow 0.3s;
-}
-
+/* Responsive improvements */
 @media (max-width: 850px) {
     .game-wrapper, .score-panel, #game-container {
         width: 98vw;
@@ -317,7 +295,6 @@ body::before {
         max-height: 70vh;
     }
 }
-
 @media (max-width: 600px) {
     #cw-logo {
         width: 120px;

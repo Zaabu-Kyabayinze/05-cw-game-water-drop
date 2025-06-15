@@ -41,9 +41,59 @@
           class="btn btn-warning fw-bold ms-2"
           target="_blank"
           rel="noopener"
-        >Learn More</a>
+        >Give💧</a>
+      </div>
+      <div class="container mt-2">
+        <a href="https://zaabu-kyabayinze.github.io/Personal-Portfolio/" target="_blank" rel="noopener" class="text-primary text-decoration-underline">
+          Designed by Zaabu Kyabayinze
+        </a>
       </div>
     </footer>
+
+    <!-- Welcome Modal -->
+    <div id="welcome-modal" class="modal show" tabindex="-1" style="display:block; background:rgba(0,0,0,0.5);">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content text-center p-4">
+          <img src="logo.png" alt="Charity: water logo" style="height:48px; margin-bottom:12px;">
+          <h2 style="font-family:'Quicksand',sans-serif;">Welcome to Water Drop!</h2>
+          <p style="font-family:'Nunito',sans-serif;">
+            Click blue water drops to collect clean water.<br>
+            Avoid yellow cans and brown drops (polluted water).<br>
+            Beat the timer and set a high score!
+          </p>
+          <button id="welcome-start-btn" class="btn btn-warning fw-bold mt-2">Start Game</button>
+          <button id="learn-more-btn" class="btn btn-link mt-2">Learn More</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Learn More Modal -->
+    <div id="learnmore-modal" class="modal" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content text-center p-4">
+          <h3 style="font-family:'Quicksand',sans-serif;">Why Clean Water?</h3>
+          <ul class="text-start" style="font-family:'Nunito',sans-serif;">
+            <li>771 million people lack access to clean water.</li>
+            <li>Clean water improves health, education, and opportunity.</li>
+            <li>Every drop you collect helps raise awareness!</li>
+          </ul>
+          <a href="https://www.charitywater.org/" target="_blank" class="btn btn-warning fw-bold mt-2">Visit charity: water</a>
+          <button id="close-learnmore-btn" class="btn btn-secondary mt-2">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Leaderboard Modal -->
+    <div id="leaderboard-modal" class="modal" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content text-center p-4">
+          <h3 style="font-family:'Quicksand',sans-serif;">Leaderboard</h3>
+          <ul id="leaderboard-list" class="list-unstyled"></ul>
+          <button id="close-leaderboard-btn" class="btn btn-secondary mt-2">Close</button>
+        </div>
+      </div>
+    </div>
+
     <script src="script.js"></script>
     <!-- Bootstrap JS (optional, for components) -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

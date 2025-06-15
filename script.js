@@ -15,18 +15,82 @@ const loseMessages = [
   "Don't give up! Water is life."
 ];
 
+// --- Modal Elements ---
+const welcomeModal = document.getElementById('welcome-modal');
+const welcomeStartBtn = document.getElementById('welcome-start-btn');
+const leaderboardModal = document.getElementById('leaderboard-modal');
+const leaderboardList = document.getElementById('leaderboard-list');
+const closeLeaderboardBtn = document.getElementById('close-leaderboard-btn');
+const learnMoreBtn = document.getElementById('learn-more-btn');
+const learnMoreModal = document.getElementById('learnmore-modal');
+const closeLearnMoreBtn = document.getElementById('close-learnmore-btn');
+
 // --- Game State Variables ---
 let gameRunning = false;
 let dropMaker;
 let timerInterval;
 let score = 0;
-let timeLeft = 30;
+let timeLeft = 60;
+let highScore = Number(localStorage.getItem('highScore') || 0);
+let streak = 0;
+let dropSpeed = 3.5; // seconds for drop to fall
+let dropInterval = 1000; // ms between drops
 
 // --- DOM Elements ---
 const scoreSpan = document.getElementById("score");
 const timeSpan = document.getElementById("time");
 const startBtn = document.getElementById("start-btn");
 const gameContainer = document.getElementById("game-container");
+
+// --- Educational Facts ---
+const waterFacts = [
+  "771 million people lack access to clean water.",
+  "Every 2 minutes a child dies from a water-related disease.",
+  "Access to clean water can improve education and health.",
+  "Women and girls spend 200 million hours daily collecting water."
+];
+
+// --- Sound Effects ---
+const sounds = {
+  collect: new Audio('collect.mp3'),
+  wrong: new Audio('wrong.mp3'),
+  gameover: new Audio('gameover.mp3')
+};
+
+// --- Show Welcome Modal ---
+function showWelcome() {
+  welcomeModal.classList.add('show');
+  welcomeModal.style.display = 'block';
+}
+function hideWelcome() {
+  welcomeModal.classList.remove('show');
+  welcomeModal.style.display = 'none';
+}
+welcomeStartBtn.onclick = () => {
+  hideWelcome();
+  startGame();
+};
+learnMoreBtn.onclick = () => {
+  learnMoreModal.classList.add('show');
+  learnMoreModal.style.display = 'block';
+};
+closeLearnMoreBtn.onclick = () => {
+  learnMoreModal.classList.remove('show');
+  learnMoreModal.style.display = 'none';
+};
+
+// --- Leaderboard Modal ---
+function showLeaderboard() {
+  leaderboardModal.classList.add('show');
+  leaderboardModal.style.display = 'block';
+  leaderboardList.innerHTML = `<li>High Score: <strong>${highScore}</strong></li>`;
+}
+if (closeLeaderboardBtn) {
+  closeLeaderboardBtn.onclick = () => {
+    leaderboardModal.classList.remove('show');
+    leaderboardModal.style.display = 'none';
+  };
+}
 
 // --- Start Game ---
 startBtn.addEventListener("click", startGame);
@@ -35,22 +99,26 @@ function startGame() {
   if (gameRunning) return;
   gameRunning = true;
   score = 0;
-  timeLeft = 30;
+  streak = 0;
+  timeLeft = 60;
+  dropSpeed = 3.5;
+  dropInterval = 1000;
   scoreSpan.textContent = score;
   timeSpan.textContent = timeLeft;
   clearDrops();
   removeEndMessage();
   addCup();
 
-  // Start drop/can creation and timer
+  // Start drop creation and timer
   dropMaker = setInterval(() => {
-    // 25% chance to spawn a can, else spawn a drop
-    if (Math.random() < 0.25) {
-      createCan();
-    } else {
-      createDrop();
-    }
-  }, 1000);
+    createDrop();
+    // Difficulty scaling: increase speed, decrease interval
+    if (dropSpeed > 1.2) dropSpeed -= 0.02;
+    if (dropInterval > 400) dropInterval -= 2;
+    clearInterval(dropMaker);
+    dropMaker = setInterval(() => createDrop(), dropInterval);
+  }, dropInterval);
+
   timerInterval = setInterval(updateTimer, 1000);
 
   startBtn.disabled = true;
@@ -115,156 +183,61 @@ function isCaught(element) {
   );
 }
 
-// --- Modify Drop Creation: SVG Raindrop ---
+// --- Create Drop (clean or polluted) ---
 function createDrop() {
+  // 70% clean, 30% polluted
+  const isClean = Math.random() > 0.3;
   const drop = document.createElement("div");
-  drop.className = "water-drop";
-  drop.style.background = "none";
-  drop.style.border = "none";
-  drop.style.boxShadow = "none";
-  drop.style.width = drop.style.height = "60px";
+  drop.className = "water-drop " + (isClean ? "clean" : "polluted");
+  drop.style.width = drop.style.height = "30px";
+  drop.style.left = Math.random() * (gameContainer.offsetWidth - 30) + "px";
+  drop.style.top = "0px";
+  drop.style.position = "absolute";
+  drop.style.transition = `top ${dropSpeed}s linear`;
+
+  // SVG: let CSS control color
   drop.innerHTML = `
-    <svg width="60" height="60" viewBox="0 0 60 60">
-      <path d="M30 6
-        C30 6, 12 32, 12 42
-        C12 53, 48 53, 48 42
-        C48 32, 30 6, 30 6 Z"
-        fill="#2E9DF7" stroke="#fff" stroke-width="3"/>
-      <ellipse cx="24" cy="28" rx="4" ry="8" fill="#fff" opacity="0.3"/>
+    <svg width="30" height="30" viewBox="0 0 30 30">
+      <path d="M15 2 C15 2, 4 18, 4 24 C4 30, 26 30, 26 24 C26 18, 15 2, 15 2 Z" />
     </svg>
   `;
 
-  // Random horizontal position
-  const gameWidth = gameContainer.offsetWidth;
-  const xPosition = Math.random() * (gameWidth - 60);
-  drop.style.left = xPosition + "px";
-  drop.style.animationDuration = "4s";
-  drop.addEventListener("animationend", () => {
-    drop.remove();
+  gameContainer.appendChild(drop);
+
+  // Animate drop falling (use requestAnimationFrame for reliability)
+  requestAnimationFrame(() => {
+    drop.style.top = (gameContainer.offsetHeight - 30) + "px";
   });
+
+  // Animate and check for catch
   function checkCatch() {
     if (!gameRunning) return;
     if (isCaught(drop)) {
-      score++;
-      scoreSpan.textContent = score;
-      showScoreFeedback("+1", drop, "#2E9DF7");
-      splashEffect(drop);
-      animateBucketHandle();
+      drop.classList.add("bounce");
+      if (isClean) {
+        score++;
+        streak++;
+        scoreSpan.textContent = score;
+        playSound('collect');
+        showScoreFeedback("+1", drop, "#2E9DF7");
+      } else {
+        score = Math.max(0, score - 1);
+        streak = 0;
+        scoreSpan.textContent = score;
+        playSound('wrong');
+        showScoreFeedback("-1", drop, "#8d6748");
+      }
       drop.remove();
       return;
     }
     if (drop.parentNode) requestAnimationFrame(checkCatch);
   }
   requestAnimationFrame(checkCatch);
-  gameContainer.appendChild(drop);
-}
 
-// --- Modify Can Creation: Use Cup Collision ---
-function createCan() {
-  const can = document.createElement("div");
-  can.className = "water-can";
-  can.style.width = "50px";
-  can.style.height = "65px";
-
-  // Random horizontal position
-  const gameWidth = gameContainer.offsetWidth;
-  const xPosition = Math.random() * (gameWidth - 50);
-  can.style.left = xPosition + "px";
-  can.style.animationDuration = "4s";
-
-  can.innerHTML = `
-    <svg width="100%" height="100%" viewBox="0 0 40 52" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect x="6" y="8" width="28" height="38" rx="6" fill="#FFC907" stroke="#131313" stroke-width="2"/>
-      <rect x="12" y="4" width="16" height="8" rx="3" fill="#fff" stroke="#131313" stroke-width="2"/>
-      <rect x="16" y="0" width="8" height="8" rx="2" fill="#FFC907" stroke="#131313" stroke-width="2"/>
-    </svg>
-  `;
-
-  can.addEventListener("animationend", () => {
-    can.remove();
-  });
-
-  function checkCatch() {
-    if (!gameRunning) return;
-    if (isCaught(can)) {
-      score -= 3;
-      if (score < 0) score = 0;
-      scoreSpan.textContent = score;
-      showScoreFeedback("-3", can, "#F5402C");
-      flashRed();
-      shakeBucket();
-      can.remove();
-      return;
-    }
-    if (can.parentNode) requestAnimationFrame(checkCatch);
-  }
-  requestAnimationFrame(checkCatch);
-
-  gameContainer.appendChild(can);
-}
-
-// --- Red Flash Animation ---
-function flashRed() {
-  gameContainer.classList.add("flash-red");
+  // Remove drop if it reaches bottom
   setTimeout(() => {
-    gameContainer.classList.remove("flash-red");
-  }, 400);
-}
-
-// --- Splash Animation for Droplets ---
-function splashEffect(drop) {
-  drop.classList.add("splash-effect");
-}
-
-// --- Shake Animation for Bucket ---
-function shakeBucket() {
-  if (!cup) return;
-  cup.classList.add("shake");
-  setTimeout(() => {
-    cup.classList.remove("shake");
-  }, 400);
-}
-
-// --- Animate Bucket Handle (creative) ---
-function animateBucketHandle() {
-  // Animate the handle path in the SVG
-  if (!cup) return;
-  const svg = cup.querySelector("svg");
-  if (!svg) return;
-  const handle = svg.querySelector("path");
-  if (!handle) return;
-  handle.setAttribute("stroke", "#FFC907");
-  setTimeout(() => {
-    handle.setAttribute("stroke", "#1B7FC4");
-  }, 350);
-}
-
-// --- Visual Feedback on Score ---
-function showScoreFeedback(text, element, color) {
-  const feedback = document.createElement("div");
-  feedback.textContent = text;
-  feedback.style.position = "absolute";
-  feedback.style.left = element.style.left;
-  feedback.style.top = element.style.top || "0px";
-  feedback.style.transform = "translateY(-30px)";
-  feedback.style.fontWeight = "bold";
-  feedback.style.fontSize = "1.5rem";
-  feedback.style.color = color;
-  feedback.style.textShadow = "0 2px 8px #fff";
-  feedback.style.pointerEvents = "none";
-  feedback.style.zIndex = "20";
-  feedback.style.transition = "opacity 0.5s, transform 0.5s";
-  feedback.style.opacity = "1";
-  gameContainer.appendChild(feedback);
-
-  setTimeout(() => {
-    feedback.style.opacity = "0";
-    feedback.style.transform = "translateY(-60px)";
-  }, 100);
-
-  setTimeout(() => {
-    feedback.remove();
-  }, 600);
+    if (drop.parentNode) drop.remove();
+  }, dropSpeed * 1000);
 }
 
 // --- Timer Logic ---
@@ -284,12 +257,12 @@ function endGame() {
   startBtn.disabled = false;
   startBtn.textContent = "Start Game";
   clearDrops();
-
-  // Show end message
+  playSound('gameover');
   showEndMessage();
+  updateHighScore();
 }
 
-// --- Show End Message ---
+// --- Show End Message with Fact ---
 function showEndMessage() {
   removeEndMessage();
   const msgDiv = document.createElement("div");
@@ -303,7 +276,7 @@ function showEndMessage() {
   msgDiv.style.borderRadius = "16px";
   msgDiv.style.padding = "40px 30px";
   msgDiv.style.boxShadow = "0 8px 32px rgba(46,157,247,0.18)";
-  msgDiv.style.fontSize = "2rem";
+  msgDiv.style.fontSize = "1.2rem";
   msgDiv.style.fontWeight = "bold";
   msgDiv.style.textAlign = "center";
   msgDiv.style.zIndex = "10";
@@ -311,17 +284,15 @@ function showEndMessage() {
   msgDiv.style.maxWidth = "90vw";
   msgDiv.style.wordBreak = "break-word";
 
-  let msg;
-  if (score >= 9) {
-    msg = winMessages[Math.floor(Math.random() * winMessages.length)];
-    msgDiv.style.borderColor = "#FFC907";
-    msgDiv.style.color = "#159A48";
-  } else {
-    msg = loseMessages[Math.floor(Math.random() * loseMessages.length)];
-    msgDiv.style.borderColor = "#F5402C";
-    msgDiv.style.color = "#F5402C";
-  }
-  msgDiv.innerHTML = `<div>${msg}</div><div style="font-size:1.2rem;margin-top:12px;">Final Score: ${score}</div>`;
+  // Motivational message and fact
+  const fact = waterFacts[Math.floor(Math.random() * waterFacts.length)];
+  msgDiv.innerHTML = `
+    <div>You collected <b>${score}</b> drops!</div>
+    <div style="font-size:1rem;margin:10px 0;">${score >= 20 ? "That's enough for clean water for one person for a day!" : "Keep trying for a new high score!"}</div>
+    <div style="font-size:0.95rem;color:#888;">${fact}</div>
+    <button class="btn btn-warning mt-3" onclick="showLeaderboard()">View Leaderboard</button>
+    <button class="btn btn-secondary mt-3" onclick="showWelcome()">Play Again</button>
+  `;
   gameContainer.appendChild(msgDiv);
 }
 
@@ -336,3 +307,50 @@ function clearDrops() {
   gameContainer.querySelectorAll(".water-drop, .water-can").forEach(el => el.remove());
   if (cup) cup.remove();
 }
+
+// --- Score Feedback Animation ---
+function showScoreFeedback(text, element, color) {
+  const feedback = document.createElement("div");
+  feedback.textContent = text;
+  feedback.style.position = "absolute";
+  feedback.style.left = element.style.left;
+  feedback.style.top = element.style.top || "0px";
+  feedback.style.transform = "translateY(-30px)";
+  feedback.style.fontWeight = "bold";
+  feedback.style.fontSize = "1.2rem";
+  feedback.style.color = color;
+  feedback.style.textShadow = "0 2px 8px #fff";
+  feedback.style.pointerEvents = "none";
+  feedback.style.zIndex = "20";
+  feedback.style.transition = "opacity 0.5s, transform 0.5s";
+  feedback.style.opacity = "1";
+  gameContainer.appendChild(feedback);
+
+  setTimeout(() => {
+    feedback.style.opacity = "0";
+    feedback.style.transform = "translateY(-60px)";
+  }, 100);
+
+  setTimeout(() => {
+    feedback.remove();
+  }, 600);
+}
+
+// --- Sound Helper ---
+function playSound(type) {
+  if (sounds[type]) {
+    sounds[type].currentTime = 0;
+    sounds[type].play();
+  }
+}
+
+// --- High Score / Leaderboard ---
+function updateHighScore() {
+  if (score > highScore) {
+    highScore = score;
+    localStorage.setItem('highScore', highScore);
+  }
+}
+
+// --- Show Welcome on Load ---
+window.onload = showWelcome;
