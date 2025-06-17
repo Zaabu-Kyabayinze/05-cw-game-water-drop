@@ -36,6 +36,27 @@ let streak = 0;
 let dropSpeed = 3.5; // seconds for drop to fall
 let dropInterval = 1000; // ms between drops
 
+// --- New State Variables for Features ---
+let level = 1;
+let levels = [
+  { name: "Rainforest", bg: "rainforest.png", dropSpeed: 3.5, dropInterval: 1000, time: 30 },
+  { name: "Village", bg: "village.png", dropSpeed: 2.8, dropInterval: 850, time: 30 },
+  { name: "Arid Zone", bg: "arid.jpg", dropSpeed: 2.2, dropInterval: 700, time: 30 }
+];
+let pollutedCaught = 0;
+let cleanCaught = 0;
+let bonusCaught = 0;
+let shield = false;
+let doublePoints = false;
+let doublePointsTimeout = null;
+let freezeTimeout = null;
+let stormActive = false;
+let stormTimeout = null;
+let bonusRound = false;
+let bonusRoundTimeout = null;
+let playerName = localStorage.getItem('playerName') || '';
+let leaderboard = JSON.parse(localStorage.getItem('leaderboard') || '[]');
+
 // --- DOM Elements ---
 const scoreSpan = document.getElementById("score");
 const timeSpan = document.getElementById("time");
@@ -83,7 +104,9 @@ closeLearnMoreBtn.onclick = () => {
 function showLeaderboard() {
   leaderboardModal.classList.add('show');
   leaderboardModal.style.display = 'block';
-  leaderboardList.innerHTML = `<li>High Score: <strong>${highScore}</strong></li>`;
+  leaderboardList.innerHTML =
+    `<li>Your High Score: <strong>${highScore}</strong></li>` +
+    leaderboard.map(e => `<li>${e.name}: <strong>${e.score}</strong></li>`).join('');
 }
 if (closeLeaderboardBtn) {
   closeLeaderboardBtn.onclick = () => {
@@ -97,6 +120,7 @@ startBtn.addEventListener("click", startGame);
 
 function startGame() {
   if (gameRunning) return;
+  setLevel(level);
   gameRunning = true;
   score = 0;
   streak = 0;
@@ -105,6 +129,7 @@ function startGame() {
   dropInterval = 1000;
   scoreSpan.textContent = score;
   timeSpan.textContent = timeLeft;
+  document.getElementById('progress-inner').style.width = "100%";
   clearDrops();
   removeEndMessage();
   addCup();
@@ -115,6 +140,10 @@ function startGame() {
     // Difficulty scaling: increase speed, decrease interval
     if (dropSpeed > 1.2) dropSpeed -= 0.02;
     if (dropInterval > 400) dropInterval -= 2;
+    // Storm event
+    if (Math.random() < 0.01) triggerStorm();
+    // Bonus round every 50 points
+    if (score > 0 && score % 50 === 0 && !bonusRound) triggerBonusRound();
     clearInterval(dropMaker);
     dropMaker = setInterval(() => createDrop(), dropInterval);
   }, dropInterval);
@@ -183,49 +212,138 @@ function isCaught(element) {
   );
 }
 
-// --- Create Drop (clean or polluted) ---
+// --- Progress Bar ---
+const progressBar = document.createElement("div");
+progressBar.id = "progress-bar";
+progressBar.style.height = "8px";
+progressBar.style.width = "100%";
+progressBar.style.background = "linear-gradient(90deg,#2E9DF7,#FFC907)";
+progressBar.style.borderRadius = "6px";
+progressBar.style.marginBottom = "8px";
+progressBar.style.overflow = "hidden";
+progressBar.innerHTML = `<div id="progress-inner" style="height:100%;width:100%;background:#2E9DF7;transition:width 1s;"></div>`;
+document.querySelector('.score-panel').before(progressBar);
+
+// --- Animate Start Button ---
+startBtn.classList.add("pulse-anim");
+
+// --- How to Play Modal ---
+function showHowToPlay() {
+  // Simple modal for tutorial
+  alert("How to Play:\n\nCatch blue drops for points.\nCatch green drops for power-ups!\nAvoid brown drops (polluted water).\nSurvive each level and aim for a high score!");
+}
+
+// --- Level Progression ---
+function setLevel(lvl) {
+  level = lvl;
+  let l = levels[level-1] || levels[levels.length-1];
+  dropSpeed = l.dropSpeed;
+  dropInterval = l.dropInterval;
+  timeLeft = l.time;
+  // Remove previous level class
+  gameContainer.classList.remove('level-1', 'level-2', 'level-3');
+  // Add current level class for background
+  gameContainer.classList.add(`level-${level}`);
+  document.body.style.background = `linear-gradient(120deg,#e0f7fa,#fffbe6 80%)`;
+}
+
+// --- Power-ups ---
+function activateBonus(type) {
+  if (type === "freeze") {
+    clearInterval(timerInterval);
+    freezeTimeout = setTimeout(() => { timerInterval = setInterval(updateTimer, 1000); }, 3000);
+    showScoreFeedback("Time Frozen!", cup, "#3ec300");
+  } else if (type === "double") {
+    doublePoints = true;
+    if (doublePointsTimeout) clearTimeout(doublePointsTimeout);
+    doublePointsTimeout = setTimeout(() => { doublePoints = false; }, 10000);
+    showScoreFeedback("Double Points!", cup, "#3ec300");
+  } else if (type === "shield") {
+    shield = true;
+    showScoreFeedback("Shield!", cup, "#3ec300");
+  }
+}
+
+// --- Storm Event ---
+function triggerStorm() {
+  if (stormActive) return;
+  stormActive = true;
+  dropInterval = Math.max(300, dropInterval / 2);
+  document.getElementById('game-container').classList.add('storm');
+  stormTimeout = setTimeout(() => {
+    stormActive = false;
+    dropInterval = levels[level-1]?.dropInterval || 1000;
+    document.getElementById('game-container').classList.remove('storm');
+  }, 10000);
+}
+
+// --- Bonus Round ---
+function triggerBonusRound() {
+  bonusRound = true;
+  showScoreFeedback("BONUS ROUND!", cup, "#FFC907");
+  bonusRoundTimeout = setTimeout(() => { bonusRound = false; }, 10000);
+}
+
+// --- Create Drop (clean, polluted, bonus) ---
 function createDrop() {
-  // 70% clean, 30% polluted
-  const isClean = Math.random() > 0.3;
+  let rand = Math.random();
+  let dropType = "clean";
+  if (rand > 0.95) dropType = "bonus";
+  else if (rand > 0.7) dropType = "polluted";
+
   const drop = document.createElement("div");
-  drop.className = "water-drop " + (isClean ? "clean" : "polluted");
+  drop.className = "water-drop " + dropType;
   drop.style.width = drop.style.height = "30px";
   drop.style.left = Math.random() * (gameContainer.offsetWidth - 30) + "px";
   drop.style.top = "0px";
   drop.style.position = "absolute";
   drop.style.transition = `top ${dropSpeed}s linear`;
 
-  // SVG: let CSS control color
-  drop.innerHTML = `
-    <svg width="30" height="30" viewBox="0 0 30 30">
-      <path d="M15 2 C15 2, 4 18, 4 24 C4 30, 26 30, 26 24 C26 18, 15 2, 15 2 Z" />
-    </svg>
-  `;
+  // SVG color based on type
+  if (dropType === "bonus") {
+    drop.innerHTML = `<svg width="30" height="30"><path d="M15 2 C15 2, 4 18, 4 24 C4 30, 26 30, 26 24 C26 18, 15 2, 15 2 Z" fill="#3ec300" stroke="#fff"/></svg>`;
+  } else if (dropType === "polluted") {
+    drop.innerHTML = `<svg width="30" height="30"><path d="M15 2 C15 2, 4 18, 4 24 C4 30, 26 30, 26 24 C26 18, 15 2, 15 2 Z" fill="#8d6748" stroke="#fff"/></svg>`;
+  } else {
+    drop.innerHTML = `<svg width="30" height="30"><path d="M15 2 C15 2, 4 18, 4 24 C4 30, 26 30, 26 24 C26 18, 15 2, 15 2 Z" fill="#2E9DF7" stroke="#fff"/></svg>`;
+  }
 
   gameContainer.appendChild(drop);
 
-  // Animate drop falling (use requestAnimationFrame for reliability)
   requestAnimationFrame(() => {
     drop.style.top = (gameContainer.offsetHeight - 30) + "px";
   });
 
-  // Animate and check for catch
   function checkCatch() {
     if (!gameRunning) return;
     if (isCaught(drop)) {
       drop.classList.add("bounce");
-      if (isClean) {
-        score++;
-        streak++;
+      if (dropType === "clean") {
+        let pts = bonusRound ? 3 : doublePoints ? 2 : 1;
+        score += pts;
+        cleanCaught++;
         scoreSpan.textContent = score;
         playSound('collect');
-        showScoreFeedback("+1", drop, "#2E9DF7");
-      } else {
-        score = Math.max(0, score - 1);
-        streak = 0;
-        scoreSpan.textContent = score;
-        playSound('wrong');
-        showScoreFeedback("-1", drop, "#8d6748");
+        showScoreFeedback(`+${pts}`, drop, "#2E9DF7");
+      } else if (dropType === "polluted") {
+        if (shield) {
+          shield = false;
+          showScoreFeedback("Shielded!", drop, "#FFC907");
+        } else {
+          score = Math.max(0, score - 1);
+          pollutedCaught++;
+          scoreSpan.textContent = score;
+          playSound('wrong');
+          showScoreFeedback("-1", drop, "#8d6748");
+        }
+      } else if (dropType === "bonus") {
+        bonusCaught++;
+        let effect = Math.random();
+        if (effect < 0.33) activateBonus("freeze");
+        else if (effect < 0.66) activateBonus("double");
+        else activateBonus("shield");
+        playSound('collect');
+        showScoreFeedback("BONUS!", drop, "#3ec300");
       }
       drop.remove();
       return;
@@ -234,18 +352,16 @@ function createDrop() {
   }
   requestAnimationFrame(checkCatch);
 
-  // Remove drop if it reaches bottom
-  setTimeout(() => {
-    if (drop.parentNode) drop.remove();
-  }, dropSpeed * 1000);
+  setTimeout(() => { if (drop.parentNode) drop.remove(); }, dropSpeed * 1000);
 }
 
-// --- Timer Logic ---
+// --- Timer Logic with Progress Bar ---
 function updateTimer() {
   timeLeft--;
   timeSpan.textContent = timeLeft;
+  document.getElementById('progress-inner').style.width = `${(timeLeft / (levels[level-1]?.time || 30)) * 100}%`;
   if (timeLeft <= 0) {
-    endGame();
+    endLevel();
   }
 }
 
@@ -259,6 +375,19 @@ function endGame() {
   clearDrops();
   playSound('gameover');
   showEndMessage();
+  updateHighScore();
+}
+
+// --- End Level and Stats Modal ---
+function endLevel() {
+  gameRunning = false;
+  clearInterval(dropMaker);
+  clearInterval(timerInterval);
+  startBtn.disabled = false;
+  startBtn.textContent = "Start Game";
+  clearDrops();
+  playSound('gameover');
+  showLevelStats();
   updateHighScore();
 }
 
@@ -292,6 +421,24 @@ function showEndMessage() {
     <div style="font-size:0.95rem;color:#888;">${fact}</div>
     <button class="btn btn-warning mt-3" onclick="showLeaderboard()">View Leaderboard</button>
     <button class="btn btn-secondary mt-3" onclick="showWelcome()">Play Again</button>
+  `;
+  gameContainer.appendChild(msgDiv);
+}
+
+// --- Show Level Stats Modal ---
+function showLevelStats() {
+  removeEndMessage();
+  const msgDiv = document.createElement("div");
+  msgDiv.id = "end-message";
+  msgDiv.innerHTML = `
+    <div>Level: <b>${levels[level-1]?.name || "Endless"}</b></div>
+    <div>You collected <b>${cleanCaught}</b> clean, <b>${bonusCaught}</b> bonus, <b>${pollutedCaught}</b> polluted drops.</div>
+    <div>Score: <b>${score}</b></div>
+    <div style="font-size:0.95rem;color:#888;">${waterFacts[Math.floor(Math.random() * waterFacts.length)]}</div>
+    <button class="btn btn-warning mt-3" onclick="nextLevel()">Next Level</button>
+    <button class="btn btn-secondary mt-3" onclick="showWelcome()">Main Menu</button>
+    <button class="btn btn-info mt-3" onclick="showDonate()">Support Clean Water</button>
+    <button class="btn btn-success mt-3" onclick="showLeaderboard()">Leaderboard</button>
   `;
   gameContainer.appendChild(msgDiv);
 }
@@ -349,8 +496,68 @@ function updateHighScore() {
   if (score > highScore) {
     highScore = score;
     localStorage.setItem('highScore', highScore);
+    let name = playerName || prompt("New High Score! Enter your name:");
+    if (name) {
+      playerName = name;
+      localStorage.setItem('playerName', name);
+      leaderboard.push({ name, score });
+      leaderboard = leaderboard.sort((a,b) => b.score - a.score).slice(0,5);
+      localStorage.setItem('leaderboard', JSON.stringify(leaderboard));
+    }
   }
 }
 
-// --- Show Welcome on Load ---
-window.onload = showWelcome;
+// --- Show Leaderboard Modal ---
+function showLeaderboard() {
+  leaderboardModal.classList.add('show');
+  leaderboardModal.style.display = 'block';
+  leaderboardList.innerHTML =
+    `<li>Your High Score: <strong>${highScore}</strong></li>` +
+    leaderboard.map(e => `<li>${e.name}: <strong>${e.score}</strong></li>`).join('');
+}
+
+// --- Animate Start Button CSS ---
+const style = document.createElement('style');
+style.innerHTML = `
+.pulse-anim {
+  animation: pulse 1.2s infinite;
+}
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 #FFC90788; }
+  70% { box-shadow: 0 0 0 12px #FFC90700; }
+  100% { box-shadow: 0 0 0 0 #FFC90700; }
+}
+.storm { filter: brightness(0.7) saturate(1.2); }
+`;
+document.head.appendChild(style);
+
+// --- On Load: Show How To Play Modal ---
+window.onload = function() {
+  showHowToPlay();
+  showWelcome();
+};
+
+function nextLevel() {
+  removeEndMessage();
+  // Advance to next level or loop to last if out of bounds
+  level++;
+  if (level > levels.length) level = levels.length;
+  // Reset per-level stats
+  cleanCaught = 0;
+  pollutedCaught = 0;
+  bonusCaught = 0;
+  shield = false;
+  doublePoints = false;
+  bonusRound = false;
+  // Set up new level and start
+  setLevel(level);
+  startGame();
+}
+
+// Make nextLevel globally accessible for inline onclick
+window.nextLevel = nextLevel;
+
+// --- Donate Button ---
+function showDonate() {
+  window.open("https://www.charitywater.org/?_gl=1*1tslryf*_up*MQ..&gclid=Cj0KCQjwu7TCBhCYARIsAM_S3Ng5pyws6fp6r4yQh5lGoya8HDsNb0glaDsV0TI55EpvaF5pvGUobtcaAtSlEALw_wcB&gbraid=0AAAAA98QX68Jb1OoekL2Lz_hrmO5UBesz", "_blank");
+}
