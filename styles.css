@@ -125,22 +125,22 @@ body::before {
 #game-container {
     width: 100%;
     max-width: 400px;
-    min-width: 180px;
+    min-width: 140px;
     aspect-ratio: 2/3;
     height: auto;
-    min-height: 260px;
-    max-height: 70vh;
+    min-height: 180px;
+    max-height: 70vw;
     margin-bottom: 24px;
     background: url('CPT.png') no-repeat center center fixed;
     border: 3px solid #000306;
     border-radius: 16px;
     position: relative;
     overflow: hidden; 
-    margin-bottom: 24px;
     box-shadow: 0 4px 24px rgba(46,157,247,0.10);
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center center;
+    transition: width 0.2s, height 0.2s;
 }
 
 .water-drop {
@@ -361,62 +361,46 @@ html, body {
 #game-container {
     width: 100%;
     max-width: 400px;
-    min-width: 180px;
+    min-width: 140px;
     aspect-ratio: 2/3;
     height: auto;
-    min-height: 260px;
-    max-height: 70vh;
+    min-height: 180px;
+    max-height: 70vw;
     margin-bottom: 24px;
     background: url('CPT.png') no-repeat center center fixed;
     border: 3px solid #000306;
     border-radius: 16px;
     position: relative;
     overflow: hidden; 
-    margin-bottom: 24px;
     box-shadow: 0 4px 24px rgba(46,157,247,0.10);
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center center;
+    transition: width 0.2s, height 0.2s;
 }
 
 /* Water drop and can responsiveness */
 .water-drop, .water-can {
-    width: 8vw;
-    height: 8vw;
-    min-width: 24px;
-    min-height: 24px;
-    max-width: 38px;
-    max-height: 38px;
+    width: 10vw;
+    height: 10vw;
+    min-width: 20px;
+    min-height: 20px;
+    max-width: 40px;
+    max-height: 40px;
 }
 
 /* Cup responsiveness */
 #cup {
-    width: 12vw;
-    height: 8vw;
+    width: 18vw;
+    height: 12vw;
     min-width: 32px;
     min-height: 22px;
-    max-width: 64px;
+    max-width: 70px;
     max-height: 44px;
     bottom: 2vw;
 }
 
-/* End message and modal content scaling */
-#end-message, .modal-content {
-    font-size: 1rem;
-    padding: 16px 8px;
-    max-width: 95vw;
-}
-
-/* Footer responsiveness */
-footer .container {
-    flex-direction: row !important;
-    gap: 12px;
-    text-align: center;
-    justify-content: center;
-    align-items: center;
-}
-
-/* --- Media Queries for Smaller Screens --- */
+/* Responsive improvements for smaller screens */
 @media (max-width: 850px) {
     .game-wrapper, .score-panel, #game-container {
         width: 98vw;
@@ -425,18 +409,18 @@ footer .container {
     }
     #game-container {
         aspect-ratio: 2/3;
-        min-height: 150px;    /* reduced from 180px */
-        max-height: 45vh;     /* reduced from 60vh */
+        min-height: 120px;
+        max-height: 60vw;
     }
 }
 
 @media (max-width: 600px) {
     #cw-logo {
-        width: 100px;
+        width: 80px;
         max-width: 90vw;
     }
     .game-title {
-        font-size: 1.5rem;
+        font-size: 1.2rem;
     }
     .score-panel {
         max-width: 98vw;
@@ -444,27 +428,27 @@ footer .container {
         padding: 4px 4px;
     }
     #game-container {
-        min-width: 90px;      /* reduced from 120px */
+        min-width: 80px;
         width: 98vw;
         aspect-ratio: 2/3;
-        min-height: 70px;     /* reduced from 100px */
-        max-height: 30vh;     /* reduced from 40vh */
+        min-height: 60px;
+        max-height: 60vw;
     }
     .water-drop, .water-can {
-        width: 12vw;
-        height: 12vw;
-        min-width: 18px;
-        min-height: 18px;
-        max-width: 28px;
-        max-height: 28px;
+        width: 14vw;
+        height: 14vw;
+        min-width: 16px;
+        min-height: 16px;
+        max-width: 32px;
+        max-height: 32px;
     }
     #cup {
-        width: 18vw;
-        height: 12vw;
+        width: 22vw;
+        height: 14vw;
         min-width: 18px;
         min-height: 12px;
-        max-width: 32px;
-        max-height: 22px;
+        max-width: 36px;
+        max-height: 24px;
         bottom: 1vw;
     }
     #end-message, .modal-content {
@@ -473,23 +457,17 @@ footer .container {
     }
 }
 
-@media (max-width: 500px) {
-  footer .container {
-    flex-direction: column !important;
-    gap: 8px;
-  }
-}
-
 @media (max-width: 400px) {
     .game-title {
-        font-size: 1.1rem;
+        font-size: 1rem;
     }
     .score-panel {
         font-size: 0.85rem;
     }
     #game-container {
-        min-width: 60px;      /* reduced from 80px */
-        min-height: 40px;     /* reduced from 60px */
+        min-width: 50px;
+        min-height: 30px;
+        max-height: 50vw;
     }
 }
 
