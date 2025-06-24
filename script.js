@@ -73,10 +73,28 @@ const waterFacts = [
 
 // --- Sound Effects ---
 const sounds = {
-  collect: new Audio('collect.mp3'),
-  wrong: new Audio('wrong.mp3'),
-  gameover: new Audio('gameover.mp3')
+  collect: new Audio('collect.mp3'),      // For catching clean or bonus drops
+  wrong: new Audio('wrong.mp3'),          // For catching polluted drops
+  gameover: new Audio('gameover.mp3'),    // For game over or end of level
+  bonus: new Audio('bonus.mp3'),          // For catching a bonus drop
+  shield: new Audio('shield.mp3'),        // For activating shield power-up
+  double: new Audio('double.mp3'),        // For activating double points
+  freeze: new Audio('freeze.mp3'),        // For activating freeze time
+  levelup: new Audio('levelup.mp3')       // For advancing to next level
 };
+
+// --- Background Music ---
+const backgroundMusic = new Audio('background.mp3');
+backgroundMusic.loop = true;
+backgroundMusic.volume = 0.18; // Not too loud
+
+function playBackgroundMusic() {
+  backgroundMusic.currentTime = 0;
+  backgroundMusic.play();
+}
+function pauseBackgroundMusic() {
+  backgroundMusic.pause();
+}
 
 // --- Show Welcome Modal ---
 function showWelcome() {
@@ -133,6 +151,9 @@ function startGame() {
   clearDrops();
   removeEndMessage();
   addCup();
+
+  // Start background music
+  playBackgroundMusic();
 
   // Start drop creation and timer
   dropMaker = setInterval(() => {
@@ -376,6 +397,8 @@ function endGame() {
   playSound('gameover');
   showEndMessage();
   updateHighScore();
+  // Pause background music
+  pauseBackgroundMusic();
 }
 
 // --- End Level and Stats Modal ---
@@ -389,6 +412,8 @@ function endLevel() {
   playSound('gameover');
   showLevelStats();
   updateHighScore();
+  // Pause background music
+  pauseBackgroundMusic();
 }
 
 // --- Show End Message with Fact ---
@@ -483,7 +508,7 @@ function showScoreFeedback(text, element, color) {
   }, 600);
 }
 
-// --- Sound Helper ---
+// --- Play Sound Helper ---
 function playSound(type) {
   if (sounds[type]) {
     sounds[type].currentTime = 0;
