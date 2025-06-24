@@ -5,7 +5,7 @@ const logoUrl = "https://www.charitywater.org/assets/images/logos/charity-water-
 const winMessages = [
   "Amazing! You’re a water hero! 💧",
   "You did it! Clean water for all! 🌍",
-  "You win!Every drop counts!",
+  "You win! Every drop counts!",
   "Winner! You made a splash for good!"
 ];
 const loseMessages = [
@@ -15,7 +15,7 @@ const loseMessages = [
   "Don't give up! Water is life."
 ];
 
-// --- Modal Elements ---
+// --- Elements ---
 const welcomeModal = document.getElementById('welcome-modal');
 const welcomeStartBtn = document.getElementById('welcome-start-btn');
 const leaderboardModal = document.getElementById('leaderboard-modal');
@@ -24,44 +24,22 @@ const closeLeaderboardBtn = document.getElementById('close-leaderboard-btn');
 const learnMoreBtn = document.getElementById('learn-more-btn');
 const learnMoreModal = document.getElementById('learnmore-modal');
 const closeLearnMoreBtn = document.getElementById('close-learnmore-btn');
+const scoreSpan = document.getElementById("score");
+const timeSpan = document.getElementById("time");
+const startBtn = document.getElementById("start-btn");
+const gameContainer = document.getElementById("game-container");
 
-// --- Game State Variables ---
-let gameRunning = false;
-let dropMaker;
-let timerInterval;
-let score = 0;
-let timeLeft = 60;
-let highScore = Number(localStorage.getItem('highScore') || 0);
-let streak = 0;
-let dropSpeed = 3.5; // seconds for drop to fall
-let dropInterval = 1000; // ms between drops
-
-// --- New State Variables for Features ---
-let level = 1;
+// --- State ---
+let gameRunning = false, dropMaker, timerInterval, score = 0, timeLeft = 60, highScore = Number(localStorage.getItem('highScore') || 0), streak = 0;
+let dropSpeed = 3.5, dropInterval = 1000, level = 1;
 let levels = [
   { name: "Rainforest", bg: "rainforest.png", dropSpeed: 3.5, dropInterval: 1000, time: 30 },
   { name: "Village", bg: "village.png", dropSpeed: 2.8, dropInterval: 850, time: 30 },
   { name: "Arid Zone", bg: "arid.jpg", dropSpeed: 2.2, dropInterval: 700, time: 30 }
 ];
-let pollutedCaught = 0;
-let cleanCaught = 0;
-let bonusCaught = 0;
-let shield = false;
-let doublePoints = false;
-let doublePointsTimeout = null;
-let freezeTimeout = null;
-let stormActive = false;
-let stormTimeout = null;
-let bonusRound = false;
-let bonusRoundTimeout = null;
+let pollutedCaught = 0, cleanCaught = 0, bonusCaught = 0, shield = false, doublePoints = false, doublePointsTimeout = null, freezeTimeout = null, stormActive = false, stormTimeout = null, bonusRound = false, bonusRoundTimeout = null;
 let playerName = localStorage.getItem('playerName') || '';
 let leaderboard = JSON.parse(localStorage.getItem('leaderboard') || '[]');
-
-// --- DOM Elements ---
-const scoreSpan = document.getElementById("score");
-const timeSpan = document.getElementById("time");
-const startBtn = document.getElementById("start-btn");
-const gameContainer = document.getElementById("game-container");
 
 // --- Educational Facts ---
 const waterFacts = [
@@ -73,21 +51,27 @@ const waterFacts = [
 
 // --- Sound Effects ---
 const sounds = {
-  collect: new Audio('collect.mp3'),      // For catching clean or bonus drops
-  wrong: new Audio('wrong.mp3'),          // For catching polluted drops
-  gameover: new Audio('gameover.mp3'),    // For game over or end of level
-  bonus: new Audio('bonus.mp3'),          // For catching a bonus drop
-  shield: new Audio('shield.mp3'),        // For activating shield power-up
-  double: new Audio('double.mp3'),        // For activating double points
-  freeze: new Audio('freeze.mp3'),        // For activating freeze time
-  levelup: new Audio('levelup.mp3')       // For advancing to next level
+  collect: new Audio('collect.mp3'),
+  wrong: new Audio('wrong.mp3'),
+  gameover: new Audio('gameover.mp3'),
+  bonus: new Audio('bonus.mp3'),
+  shield: new Audio('shield.mp3'),
+  double: new Audio('double.mp3'),
+  freeze: new Audio('freeze.mp3'),
+  levelup: new Audio('levelup.mp3')
 };
-
-// --- Background Music ---
 const backgroundMusic = new Audio('background.mp3');
 backgroundMusic.loop = true;
-backgroundMusic.volume = 0.18; // Not too loud
+backgroundMusic.volume = 0.18;
+backgroundMusic.playbackRate = 1.5;
 
+// Sound and music always enabled (no toggle buttons)
+function playSound(type) {
+  if (sounds[type]) {
+    sounds[type].currentTime = 0;
+    sounds[type].play();
+  }
+}
 function playBackgroundMusic() {
   backgroundMusic.currentTime = 0;
   backgroundMusic.play();
@@ -97,41 +81,23 @@ function pauseBackgroundMusic() {
 }
 
 // --- Show Welcome Modal ---
-function showWelcome() {
-  welcomeModal.classList.add('show');
-  welcomeModal.style.display = 'block';
-}
-function hideWelcome() {
-  welcomeModal.classList.remove('show');
-  welcomeModal.style.display = 'none';
-}
-welcomeStartBtn.onclick = () => {
-  hideWelcome();
-  startGame();
-};
-learnMoreBtn.onclick = () => {
-  learnMoreModal.classList.add('show');
-  learnMoreModal.style.display = 'block';
-};
-closeLearnMoreBtn.onclick = () => {
-  learnMoreModal.classList.remove('show');
-  learnMoreModal.style.display = 'none';
-};
+function showWelcome() { welcomeModal.classList.add('show'); welcomeModal.style.display = 'block'; }
+function hideWelcome() { welcomeModal.classList.remove('show'); welcomeModal.style.display = 'none'; }
+welcomeStartBtn.onclick = () => { hideWelcome(); startGame(); };
+learnMoreBtn.onclick = () => { learnMoreModal.classList.add('show'); learnMoreModal.style.display = 'block'; };
+closeLearnMoreBtn.onclick = () => { learnMoreModal.classList.remove('show'); learnMoreModal.style.display = 'none'; };
 
 // --- Leaderboard Modal ---
 function showLeaderboard() {
   leaderboardModal.classList.add('show');
   leaderboardModal.style.display = 'block';
-  leaderboardList.innerHTML =
-    `<li>Your High Score: <strong>${highScore}</strong></li>` +
+  leaderboardList.innerHTML = `<li>Your High Score: <strong>${highScore}</strong></li>` +
     leaderboard.map(e => `<li>${e.name}: <strong>${e.score}</strong></li>`).join('');
 }
-if (closeLeaderboardBtn) {
-  closeLeaderboardBtn.onclick = () => {
-    leaderboardModal.classList.remove('show');
-    leaderboardModal.style.display = 'none';
-  };
-}
+if (closeLeaderboardBtn) closeLeaderboardBtn.onclick = () => {
+  leaderboardModal.classList.remove('show');
+  leaderboardModal.style.display = 'none';
+};
 
 // --- Start Game ---
 startBtn.addEventListener("click", startGame);
@@ -140,37 +106,26 @@ function startGame() {
   if (gameRunning) return;
   setLevel(level);
   gameRunning = true;
-  score = 0;
-  streak = 0;
-  timeLeft = 60;
-  dropSpeed = 3.5;
-  dropInterval = 1000;
+  score = 0; streak = 0; timeLeft = 60; dropSpeed = 3.5; dropInterval = 1000;
   scoreSpan.textContent = score;
   timeSpan.textContent = timeLeft;
   document.getElementById('progress-inner').style.width = "100%";
   clearDrops();
   removeEndMessage();
   addCup();
-
-  // Start background music
   playBackgroundMusic();
 
-  // Start drop creation and timer
   dropMaker = setInterval(() => {
     createDrop();
-    // Difficulty scaling: increase speed, decrease interval
     if (dropSpeed > 1.2) dropSpeed -= 0.02;
     if (dropInterval > 400) dropInterval -= 2;
-    // Storm event
     if (Math.random() < 0.01) triggerStorm();
-    // Bonus round every 50 points
     if (score > 0 && score % 50 === 0 && !bonusRound) triggerBonusRound();
     clearInterval(dropMaker);
     dropMaker = setInterval(() => createDrop(), dropInterval);
   }, dropInterval);
 
   timerInterval = setInterval(updateTimer, 1000);
-
   startBtn.disabled = true;
   startBtn.textContent = "Game Running...";
 }
@@ -508,14 +463,6 @@ function showScoreFeedback(text, element, color) {
   }, 600);
 }
 
-// --- Play Sound Helper ---
-function playSound(type) {
-  if (sounds[type]) {
-    sounds[type].currentTime = 0;
-    sounds[type].play();
-  }
-}
-
 // --- High Score / Leaderboard ---
 function updateHighScore() {
   if (score > highScore) {
@@ -532,57 +479,16 @@ function updateHighScore() {
   }
 }
 
-// --- Show Leaderboard Modal ---
-function showLeaderboard() {
-  leaderboardModal.classList.add('show');
-  leaderboardModal.style.display = 'block';
-  leaderboardList.innerHTML =
-    `<li>Your High Score: <strong>${highScore}</strong></li>` +
-    leaderboard.map(e => `<li>${e.name}: <strong>${e.score}</strong></li>`).join('');
-}
-
 // --- Animate Start Button CSS ---
 const style = document.createElement('style');
 style.innerHTML = `
-.pulse-anim {
-  animation: pulse 1.2s infinite;
-}
-@keyframes pulse {
-  0% { box-shadow: 0 0 0 0 #FFC90788; }
-  70% { box-shadow: 0 0 0 12px #FFC90700; }
-  100% { box-shadow: 0 0 0 0 #FFC90700; }
-}
+.pulse-anim { animation: pulse 1.2s infinite; }
+@keyframes pulse { 0% { box-shadow: 0 0 0 0 #FFC90788; } 70% { box-shadow: 0 0 0 12px #FFC90700; } 100% { box-shadow: 0 0 0 0 #FFC90700; } }
 .storm { filter: brightness(0.7) saturate(1.2); }
 `;
 document.head.appendChild(style);
 
 // --- On Load: Show How To Play Modal ---
 window.onload = function() {
-  showHowToPlay();
   showWelcome();
 };
-
-function nextLevel() {
-  removeEndMessage();
-  // Advance to next level or loop to last if out of bounds
-  level++;
-  if (level > levels.length) level = levels.length;
-  // Reset per-level stats
-  cleanCaught = 0;
-  pollutedCaught = 0;
-  bonusCaught = 0;
-  shield = false;
-  doublePoints = false;
-  bonusRound = false;
-  // Set up new level and start
-  setLevel(level);
-  startGame();
-}
-
-// Make nextLevel globally accessible for inline onclick
-window.nextLevel = nextLevel;
-
-// --- Donate Button ---
-function showDonate() {
-  window.open("https://www.charitywater.org/?_gl=1*1tslryf*_up*MQ..&gclid=Cj0KCQjwu7TCBhCYARIsAM_S3Ng5pyws6fp6r4yQh5lGoya8HDsNb0glaDsV0TI55EpvaF5pvGUobtcaAtSlEALw_wcB&gbraid=0AAAAA98QX68Jb1OoekL2Lz_hrmO5UBesz", "_blank");
-}
