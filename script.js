@@ -492,3 +492,30 @@ document.head.appendChild(style);
 window.onload = function() {
   showWelcome();
 };
+
+function nextLevel() {
+  removeEndMessage();
+  // Advance to next level, loop back to level 1 if past last level
+  if (level < levels.length) {
+    level++;
+  } else {
+    level = 1;
+  }
+  // Reset per-level stats
+  cleanCaught = 0;
+  pollutedCaught = 0;
+  bonusCaught = 0;
+  shield = false;
+  doublePoints = false;
+  bonusRound = false;
+  // Set up new level and start with that level's settings
+  setLevel(level);
+  startGame();
+}
+
+// Make nextLevel globally accessible for inline onclick
+window.nextLevel = nextLevel;
+
+function showDonate() {
+  window.open("https://www.charitywater.org/home?_gl=1*1wantyr*_up*MQ..*_gs*MQ..&gclid=Cj0KCQjwu7TCBhCYARIsAM_S3Ng5pyws6fp6r4yQh5lGoya8HDsNb0glaDsV0TI55EpvaF5pvGUobtcaAtSlEALw_wcB&gbraid=0AAAAA98QX68Jb1OoekL2Lz_hrmO5UBesz", "_blank");
+}
